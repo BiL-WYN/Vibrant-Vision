@@ -1,0 +1,64 @@
+.fullpage{
+    background-color: #F1F0D2;
+    min-height: 100vh;
+}
+
+
+.title{
+    font-family: 'Lucida Handwriting', cursive;
+    font-size: 50px;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 0px;
+    font-weight: 900;
+}
+
+.moto{
+    text-align: center;
+    font-size: 30px;
+    font-weight: 200;
+    
+}
+
+
+.welcome {
+  display: flex;
+  max-width: 1000px;
+  width: 100%;
+  padding-top: 40px;
+  margin: 0 auto;
+}
+
+.welcomeImg {
+  width: 400px;
+  height: 200px;
+  margin-right: 50px;
+  object-fit: cover;
+ 
+}
+
+
+.welcomeToVV{
+  font-size: 20px;
+  margin-bottom: 10px;;
+  font-weight: 500;
+}
+
+.welcome2020 {
+  font-size: 20px;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.welcomeD p {
+  font-size: 15px;
+  font-weight:200;
+  margin-bottom: 10px;
+
+}
+
+.explore{
+  color: green;
+  font-weight: 500;
+}
+

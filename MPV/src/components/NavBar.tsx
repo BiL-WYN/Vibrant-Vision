@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import type { IconType } from "react-icons";
-import { FaHome, FaQuestionCircle } from "react-icons/fa";
+import { FaHome, FaQuestionCircle, FaInfoCircle, FaSearch } from "react-icons/fa";
 import "./NavBar.css";
 
 type NavItem = {
@@ -21,6 +21,17 @@ const navItems: NavItem[] = [
     path: "/howto",
     icon: FaQuestionCircle,
   },
+  {
+    name: "About Us",
+    path: "/aboutUs",
+    icon: FaInfoCircle,
+  },
+  {
+    name: "Search",
+    path: "/search",
+    icon: FaSearch,
+  },
+
 ];
 
 const NavBar = () => (
