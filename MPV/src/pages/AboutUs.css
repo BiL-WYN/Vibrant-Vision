@@ -1,0 +1,33 @@
+.impact{
+    background-color: #E7E2C4;
+    border-radius: 20px;
+    padding:30px;
+    margin: 30px;
+}
+
+.impactTitle{
+    font-size: 25px;
+    font-weight: 400;
+    margin-bottom: 20px
+}
+
+.impactD{
+    font-weight: 200;
+}
+
+.relevance{
+    background-color: #E7E2C4;
+    border-radius: 20px;
+    padding:30px;
+    margin: 30px;
+}
+
+.relevanceTitle{
+    font-size: 25px;
+    font-weight: 400;
+    margin-bottom: 20px
+}
+
+.relevanceD{
+    font-weight: 200;
+}
