@@ -47,7 +47,7 @@ const NavBar = () => (
             isActive ? "nav-item active" : "nav-item"
           }
         >
-          <Icon size={30} color="yellow" />
+          <Icon size={30} color="white" />
           <span>{item.name}</span>
         </NavLink>
       );
