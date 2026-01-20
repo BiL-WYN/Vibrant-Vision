@@ -3,6 +3,7 @@ import Dashboard from './pages/Dashboard';
 import HowTo from './pages/HowTo';
 import AboutUs from './pages/AboutUs';
 import Search from './pages/Search';
+import Exercise from './pages/Exercise';
 
 
 
@@ -18,6 +19,7 @@ function App() {
         <Route path="/howto" element={<HowTo />} />
         <Route path="/aboutUs" element={<AboutUs />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/exercise" element={<Exercise />} />
       </Routes>
     </BrowserRouter>
   )

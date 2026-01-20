@@ -31,7 +31,11 @@ const navItems: NavItem[] = [
     path: "/search",
     icon: FaSearch,
   },
-
+  {
+    name: "Search",
+    path: "/exercise",
+    icon: FaSearch,
+  },
 ];
 
 const NavBar = () => (
