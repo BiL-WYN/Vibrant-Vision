@@ -3,6 +3,8 @@ import Dashboard from './pages/Dashboard';
 import HowTo from './pages/HowTo';
 import AboutUs from './pages/AboutUs';
 import Search from './pages/Search';
+import BlinkCamp from './pages/BlinkCamp';
+
 
 
 
@@ -18,6 +20,7 @@ function App() {
         <Route path="/howto" element={<HowTo />} />
         <Route path="/aboutUs" element={<AboutUs />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/blinkCamp" element={<BlinkCamp />} />
       </Routes>
     </BrowserRouter>
   )
