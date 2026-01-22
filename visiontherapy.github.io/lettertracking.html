@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Letter Tracking</title>
+  <meta name="darkreader-lock" />
+
+  <!-- <script src="xx_borrowed/alljs.php"></script> -->
+  <script src="js/alljs.js"></script>
+  <!-- <link rel="stylesheet" href="xx_borrowed/allcss.php" /> -->
+  <link rel="stylesheet" href="css/allcss.css" />
+  <link rel="stylesheet" href="css/vision.css" />
+  <script src="js/darkmode.js"></script>
+  <script defer src="js/settings.js"></script>
+  <script defer src="js/topmenu.js"></script>
+
+  <style>
+    #output,
+    #alphabits {
+      font-size: 20pt;
+      margin: 0.5em 2em 1.5em;
+      line-height: 1.5em;
+      letter-spacing: 0.1ex;
+      cursor: default;
+      user-select: none;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: bold;
+    }
+
+
+    #alphabits {
+      margin: 1em;
+      text-align: center;
+      line-height: 1.5em;
+      letter-spacing: 0.25em;
+    }
+
+
+    #showsol {
+      font-size: 18pt;
+      margin: 0 2em;
+    }
+
+    #output:has(#showsol input:checked) {
+      .selected {
+        color: red;
+        text-decoration: line-through;
+        /* incorrect selection*/
+      }
+
+      .alpha {
+        color: red;
+        /* missed letter */
+        text-decoration: underline;
+
+
+        &.selected {
+          color: green;
+          /* correct selection */
+        }
+      }
+    }
+
+    #ctrlbar:has(#red:checked)~div #output {
+      color: var(--tranared);
+    }
+
+
+    #output span.selected {
+      color: var(--highlight);
+      /* default selection */
+    }
+
+
+    #output span {
+      border: solid 1px transparent;
+    }
+
+    #output span:hover {
+      border: solid 1px var(--fg);
+    }
+
+
+    .period {
+      display: none;
+    }
+
+    #ctrlbar:has(#leveltwo:checked)~div #output {
+      .firstchar {
+        text-transform: uppercase;
+      }
+
+      .period {
+        display: initial;
+      }
+    }
+
+
+    .wordcount {
+      opacity: 0;
+      cursor: default;
+    }
+
+    #output span.wordcount:hover {
+      opacity: 1;
+      border-color: transparent;
+    }
+
+
+    #wordbank {
+      height: 8em;
+    }
+
+
+    #timer {
+      font-size: 20pt;
+      margin-left: 2em;
+      width: 7em;
+      border: solid 1px;
+      border-radius: 0.5em;
+      display: inline-block;
+      text-align: center;
+    }
+
+    @media print {
+      :root {
+        --trackred: #f00;
+        --trackredbg: transparent;
+      }
+
+      #output {
+        margin: 1em 4em 1em 3.5em;
+      }
+
+      #output.red {
+        background: red;
+        color: black;
+        print-color-adjust: exact !important;
+      }
+
+      #ctrlbar,
+      #controls,
+      #timer,
+      #showsol {
+        display: none
+      }
+    }
+
+    #stopwatch {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="ctrlbar">
+    <div><a href="index.html"><img id="homeicon" src="img/home.svg" alt="home" /></a></div>
+
+
+    <div id="ctrlsettings"><input type="checkbox" id="ctrlset" /><label for="ctrlset"><img src="img/icon_ctrlsettings.svg" /></label>
+
+      <div class="ctrlbox">
+
+        <div><input type="checkbox" class="slider" id="leveltwo" /><label class="button" for="leveltwo">Level 2</label></div>
+
+        <div><input type="checkbox" class="slider" id="red" /><label class="button" for="red">Red</label></div>
+
+        <div>
+          Wordbank:<br />
+          <textarea id="wordbank">th to ts te ti tu tc ta ty tl tt tr tw tg he hi ha ho ht hu hr hy er em ea el en ed ee et ev ef ei eh ex ew es eq eg ey ec ep ek eo ez eb re ry rk ra rw rd rr ri rt ro rn rg rm rs rv ru rc rh rl rp wa wh wo wi wn wr we wd as ar ab at al ay af av ac ai an ad ak am ag ap au ax no ng nk nd na ne ni nt nc ns nn ny nv nl nu nf ot or ou of oh ov oc on oo ok oa os op ow ol om og od oe ob ox in id ic it is im ie io iv ix ia ig ir if ip iq il ib so sa se sh st ss si su sl sp sc sm sk sq ve vo vi ma mu me mi mo my mp mb ms ka ke ks ki bl bb bi be bu bo by bj ba br le li lf ll la ly lo ld lm ls lu lt lk lw lv di de ds do dg da dy dd dm dr dv dl du df ce ch cc cu ct co ck cr cl ca ci cq uc ut ug ur ui ua un us ue ud um up ul ub gh ge gu gi ga gr go gn ft fe fo fl fi ff fa fu fr qu po pu pr pa pe pi pl ps pp ph pt ju je ys yi yl ye yt yw xc xe xy zo ze </textarea> <button id="go">go</button>
+          <br />
+          <div class="plain">Copy and paste any text here to use <br />
+            the letter combinations from that text.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <button id="reload">Reload</button>
+
+  </div>
+
+
+
+  <div>
+    <div id="alphabits"></div>
+
+    <input type="checkbox" data-state="0" class="threestate" id="stopwatch" /><label class="button" id="timer" for="stopwatch">start</label>
+
+    <div id="output"></div>
+    <div id="showsol"><input type="checkbox" class="slider" id="showsolution" /> <label class="button" for="showsolution"></label></div>
+
+  </div>
+
+
+  <script>
+    let digraphs = {};
+    let alphabet = "abcdefghijklmnopqrstuvwxyz";
+    let missing;
+
+    let stopwatch = document.querySelector("#stopwatch");
+    let timer = document.querySelector("#timer");
+    let startstop;
+
+    let output = document.querySelector("#output");
+
+    let showsolution = document.querySelector("#showsolution");
+
+    document.querySelector("#alphabits").innerHTML = alphabet.toUpperCase() + "<br/>" + alphabet.toLowerCase();
+
+
+    // document.querySelector("#red").onclick = document.querySelector("#leveltwo").onclick = showsolution.onclick = function () {
+    //   accents(this.checked, this.id);
+    // };
+
+    // function accents(checked, id) {
+    //   if (checked) {
+    //     output.classList.add(id);
+    //   } else {
+    //     output.classList.remove(id);
+    //   }
+    // }
+
+
+    document.querySelector("#go").onclick = function () {
+      getdigraphs();
+      showchart();
+    };
+
+    document.querySelector("#reload").onclick = function () {
+
+      console.log("reloading");
+      if (startstop) clearInterval(startstop);
+      timer.innerHTML = "start";
+      stopwatch.dataset.state = 0;
+      showchart();
+    };
+
+    getdigraphs();
+    showchart();
+
+
+    // need to check that all letters are represented in wordbank
+
+
+    function getdigraphs() {
+      let wordbank = document.querySelector("#wordbank");
+      let words = wordbank.value.replace(/[^\w\s]/g, " ").toLowerCase();
+
+      // console.log("original:", words);
+      missing = [];
+      for (const ltr of alphabet.split("")) {
+        if (!words.match(new RegExp(ltr))) {
+          missing.push(ltr);
+        }
+      }
+      if (missing.length > 0) {
+        digraphs = {};
+        return;
+      }
+      console.log("missing", missing);
+
+
+
+      for (let word of words.split(/\s+/)) {
+        let sword = word.split("");
+        let letters = [];
+        for (let c = 0; c < sword.length; c++) {
+          letters.push(sword[c]);
+          if (letters.length == 2) {
+            // check if current digraph exists in the digraph bank
+            let digr = letters.join("");
+            //console.log(digr);
+
+            if (typeof digraphs[letters[0]] === "undefined") {
+              digraphs[letters[0]] = { [letters[1]]: 1 };
+            } else if (typeof digraphs[letters[0]][letters[1]] === "undefined") {
+              digraphs[letters[0]][letters[1]] = 1;
+            } else {
+              digraphs[letters[0]][letters[1]]++;
+            }
+            letters.shift(); // only keep 2 letters in array = digraphs
+          }
+        }
+      }
+
+
+      //** replace wordbank text with flatdigraphs to make it more concise
+      let showflat = true;
+      // showflat = true;
+      if (showflat) {
+        let flatdigraphs = "";
+        for (const prima of Object.keys(digraphs)) {
+          for (const secund of Object.keys(digraphs[prima])) {
+            flatdigraphs += prima + secund + " ";
+          }
+        }
+        // console.log(flatdigraphs);
+        wordbank.value = flatdigraphs;
+        // words.innerText = flatdigraphs;
+      }
+    }
+
+
+    stopwatch.onclick = function () {
+      let state = threestate(this);
+      switch (state) {
+        case "0":
+          timer.innerHTML = "start";
+          break;
+        case "1":
+          // running state
+          let zerotime = (new Date()).getTime();
+          startstop = setInterval(() => {
+            let timediff = (new Date()).getTime() - zerotime;
+            // console.log(timediff);
+            document.querySelector("#timer").innerText = mstotime(timediff);
+          }, 100);
+          break;
+
+        case "2":
+          // stopped state
+          clearInterval(startstop);
+          break;
+        case "3":
+          clearInterval(startstop);
+          timer.innerHTML = "start";
+          this.dataset.state = 0;
+          break;
+
+      }
+
+    };
+
+    function showchart() {
+      // console.log(digraphs.length>0,digraphs); return;
+
+      if (Object.keys(digraphs).length == 0) {
+        output.innerText = "Word bank is incomplete. The following letters are missing: " + missing.join(", ") + ".";
+        // console.log("bad digraph collection", digraphs);
+        return;
+      }
+      showsolution.checked = false;
+      // accents(false, "showsolution");
+
+      let maxwords = 70;
+
+      let wordmin = 3;
+      let wordmax = 5;
+
+      let wpsmin = 3;// words per sentence
+      let wpsmax = 6;
+
+      let alpha = (alphabet + "#").split("");
+      let alphaorder = alphabet.split("");
+      let clickalpha = (alphabet).split("");
+
+      let sequence = "";
+      let string = "";
+      let wordlength = minmax(wordmin, wordmax); //wordmin + Math.floor(Math.random() * (wordmax - wordmin + 2));
+      let wordcount = 0;
+
+      let wordssincemark = 0;
+
+      while (wordcount < maxwords) {
+        let newltr = getchar(sequence);
+        let alphatype = "";
+        if (alphaorder.length > 0 && newltr == alphaorder[0]) {
+          // if newltr is in alphabetical order, cross it off the list
+          alphaorder.shift();
+          alphatype = "alpha"; // add class for cheat code
+          wordssincemark = 0;
+        }
+
+        sequence += newltr;
+        string += newltr;
+        let firstchar = "";
+        // firstchar = sequence.length ==1? " firstchar":""; // capitalization option
+
+
+        //console.log(sequence.length, wordlength, sequence.length%wordlength);
+        if (sequence.length == wordlength) {
+          string += " ";
+          sequence = "";
+          wordlength = minmax(wordmin, wordmax);//3 + Math.floor(Math.random() * 3);
+          wordcount++;
+          wordssincemark++;
+        }
+
+        if (wordcount == maxwords && alphaorder.length > 0) {
+          console.log("maxed out");// alphaorder);
+          // need more words to complete the sequence
+          maxwords += alphaorder.length;
+        }
+      }
+      console.log("prelim wordcount", wordcount);
+
+      // finally display chart
+
+      let finalstring = "";
+      alphaorder = alphabet.split("");//reinitialize alphaorder for parsing
+      wordcount = 0; // reinitialize count
+      let wpscount = 0;// words per sentence
+      for (const word of string.split(" ")) {
+        wordcount++;
+
+        let lettercaps = "";
+        if (wordcount == 1) {
+          //first letter gets caps
+          lettercaps = " firstchar";
+          // get minmax value for random word count
+          wpscount = minmax(wpsmin, wpsmax);
+          // console.log("getting wps", wpscount);
+        }
+        for (const ltr of word.split("")) {
+          let alphatype = "letter";
+          if (alphaorder.length > 0 && ltr == alphaorder[0]) {
+            // if newltr is in alphabetical order, cross it off the list
+            alphaorder.shift();
+            alphatype += " alpha"; // add class for cheat code
+          }
+          finalstring += `<span class="${alphatype}${lettercaps}">${ltr}</span>`;;
+          lettercaps = ""; // reset it so not every char gets caps
+        }
+        if (wordcount == wpscount) {
+          // end of sentence
+          // console.log("wpscount met", wordcount);
+          wordcount = 0;
+          finalstring += '<span class="period">.</span>';
+        }
+
+        finalstring += " ";
+      }
+
+
+
+
+      output.innerHTML = finalstring + "<span class='wordcount'>(" + string.split(" ").length + ")</span>";
+
+      output.onmousedown = function (e) {
+        // console.log(e.target);
+        if (!e.target.classList.contains("letter")) return;
+        if (e.target.classList.contains("selected")) {
+          e.target.classList.remove("selected");
+        } else {
+          e.target.classList.add("selected");
+        }
+        let selectedltrs = [... new Set([...document.querySelectorAll("span.selected")].map(o => o.innerText))];
+
+        if (stopwatch.dataset.state == 0 && selectedltrs.length > 0) stopwatch.click(); // start timer if this is the first letter
+
+        // && e.target.innerText.toLowerCase() == "z" // not needed if length 26
+        if (selectedltrs.length >= 26 && stopwatch.dataset.state == 1) {
+          // finished the exercise, stop timer
+          stopwatch.click();
+          showsolution.checked = true;
+          // accents(true, "showsolution");
+        }
+        console.log(selectedltrs.sort());
+
+      };
+
+      /* */
+
+
+
+      function getchar(sequence = "") {
+        let chr = alpha[Math.floor(Math.random() * alpha.length)];
+        let prevchr = sequence ? sequence.match(/.$/)[0] : "";
+
+        if (chr == "#" || wordssincemark > 7) { //27th "letter" => ensure alpha order
+          chr = alphaorder[0]; //alphaorder.push(alphaorder.shift());
+        }
+
+        if (!prevchr && digraphs[chr]) {
+          return chr;
+        }
+
+        if (!digraphs[prevchr]) {
+          console.log("no digraph with this start", prevchr);
+          return "";
+          //return getchar(sequence);
+        }
+
+        if (digraphs[prevchr] && digraphs[prevchr][chr]) {
+          //console.log("OK:", prevchr + chr);
+          return chr;
+        }
+
+        //console.log("were here", prevchr,chr);
+        return getchar(sequence);
+
+      }
+    }
+
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hart Chart exercise</title>
+  <meta name="darkreader-lock">
+
+  <!-- <script src="xx_borrowed/alljs.php"></script> -->
+  <script src="js/alljs.js"></script>
+  <!-- <link rel="stylesheet" href="xx_borrowed/allcss.php" /> -->
+  <link rel="stylesheet" href="css/allcss.css" />
+  <link rel="stylesheet" href="css/vision.css" />
+  <script src="js/darkmode.js"></script>
+  <script defer src="js/settings.js"></script>
+  <script defer src="js/topmenu.js"></script>
+
+  <link rel="stylesheet" href="css/metronome.css" />
+  <script defer src="js/metronome.js"></script>
+  <script src="js/quotes.js"></script>
+  <script src="js/getqr.js"></script>
+  <script src="js/qrcode.min.js"></script>
+
+  <style>
+    body {
+      --scale: 1;
+      --topgap: 2em;
+      /* clamp(2.5rem, 2.5em, 10vh); */
+      /* --slotsize: calc(var(--boxsize) / 10); */
+      --codegap: 2.5em;
+      --boxsize: min(calc(95vh - var(--topgap) - var(--codegap)), calc(95vw - var(--topgap) - var(--codegap)));
+      --basefont: calc(var(--boxsize) / 13);
+    }
+
+    #hartmain {
+      position: relative;
+      font-family: 'Times New Roman', Times, serif;
+      height: var(--boxsize);
+      width: var(--boxsize);
+      font-size: var(--basefont);
+      margin-top: 1em;
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      grid-template-rows: repeat(10, 1fr);
+      left: 50%;
+      transform-origin: top;
+      transform: translate(-50%) scale(var(--scale));
+
+      .slot {
+        position: relative;
+        text-align: center;
+        display: block;
+        /* grid layout takes care of size * /
+        line-height: var(--basefont); 
+        width: var(--basefont);
+        height: var(--basefont); /* */
+
+        &::after {
+          display: block;
+          position: absolute;
+          inset: 0;
+          content: attr(data-char);
+        }
+      }
+    }
+
+    #qrplace {
+      display: none;
+      position: relative;
+      text-align: center;
+    }
+
+    .qrcode {
+      padding: 10px;
+      background: #fff;
+      position: absolute;
+      left: 50%;
+      top: 1em;
+      z-index: 1000;
+    }
+
+    #qrtoggle:checked~#qrplace {
+      display: block;
+    }
+
+
+    #boxscale {
+      position: relative;
+      top: 1em;
+      left: 50%;
+      transform: translate(-50%);
+      width: 40%;
+
+      & input {
+        width: 100%;
+      }
+    }
+
+    #boxscale::before,
+    #boxscale::after {
+      content: "A";
+      font-size: 100%;
+      display: block;
+      position: absolute;
+      width: 1em;
+      height: 1em;
+      top: 50%;
+      transform: translate(0, -50%);
+    }
+
+    #boxscale::before {
+      left: -1.5em;
+    }
+
+    #boxscale::after {
+      font-size: 150%;
+      right: -1.5em;
+    }
+
+    #hartchart {
+      display: flex;
+      flex-direction: column;
+
+
+      #showcode {
+        font-size: calc(var(--basefont) /2);
+        margin: 1em 1em 0;
+
+        &:has(input:checked)~ :is(#codehints, #codeout) {
+          display: block;
+        }
+      }
+
+      #codeout {
+        display: none;
+        /* &::before {
+          content: "Hart Code:";
+          display:block;
+        } */
+
+        font-size: calc(var(--basefont) /2);
+        /* order: 2; */
+        transition: all 0.5s;
+        margin: 0.5em 1em;
+
+        .lettercode {
+          padding: 0 0.25em;
+          cursor: pointer;
+          background: transparent;
+          border: none;
+          width: 3.2em;
+          color: var(--fg);
+          font-size: 90%;
+          text-align: center;
+          display: inline-block;
+
+          &.correct {
+            color: var(--highlight);
+          }
+        }
+
+        .lettercode:not([data-row]) {
+          pointer-events: none;
+        }
+
+      }
+
+      #codeout.finished {
+        background: green;
+
+        .lettercode {
+          padding: 0;
+          margin: 0;
+          width: 1em;
+
+          .correct {
+            color: var(--fg);
+          }
+        }
+      }
+
+      #codehints {
+        display: none;
+        margin: 0.5em 2em;
+      }
+
+
+      /* #codehints:has(input:checked)~#codeout { */
+      #hartmain:has(~#codehints input:checked) {
+
+        &:has(~#codeout [data-row="1"]:hover) [data-row="1"],
+        &:has(~#codeout [data-row="2"]:hover) [data-row="2"],
+        &:has(~#codeout [data-row="3"]:hover) [data-row="3"],
+        &:has(~#codeout [data-row="4"]:hover) [data-row="4"],
+        &:has(~#codeout [data-row="5"]:hover) [data-row="5"],
+        &:has(~#codeout [data-row="6"]:hover) [data-row="6"],
+        &:has(~#codeout [data-row="7"]:hover) [data-row="7"],
+        &:has(~#codeout [data-row="8"]:hover) [data-row="8"],
+        &:has(~#codeout [data-row="9"]:hover) [data-row="9"],
+        &:has(~#codeout [data-row="10"]:hover) [data-row="10"],
+        &:has(~#codeout [data-col="1"]:hover) [data-col="1"],
+        &:has(~#codeout [data-col="2"]:hover) [data-col="2"],
+        &:has(~#codeout [data-col="3"]:hover) [data-col="3"],
+        &:has(~#codeout [data-col="4"]:hover) [data-col="4"],
+        &:has(~#codeout [data-col="5"]:hover) [data-col="5"],
+        &:has(~#codeout [data-col="6"]:hover) [data-col="6"],
+        &:has(~#codeout [data-col="7"]:hover) [data-col="7"],
+        &:has(~#codeout [data-col="8"]:hover) [data-col="8"],
+        &:has(~#codeout [data-col="9"]:hover) [data-col="9"],
+        &:has(~#codeout [data-col="10"]:hover) [data-col="10"] {
+          color: var(--highlight);
+        }
+      }
+
+    }
+
+    #metronome {
+      display: none;
+    }
+
+    #ctrlbar:has(#showmetro:checked) #metronome {
+      display: block;
+    }
+
+
+
+    #ctrlbar:has(#redmode[data-state="1"])~#hartchart #hartmain {
+      & .slot:nth-child(even) {
+        background: var(--tranared);
+        color: var(--bg);
+      }
+
+      & .slot:nth-child(odd) {
+        color: var(--tranagreen);
+      }
+    }
+
+
+
+    #ctrlbar:has(#redmode[data-state="2"])~#hartchart #hartmain {
+      & .slot.randomred {
+        background: var(--tranared);
+        color: var(--bg);
+      }
+
+      & .slot:not(.randomred) {
+        color: var(--tranagreen);
+      }
+    }
+
+
+    @media print {
+
+
+      #ctrlbar:has(#redmode[data-state="1"])~#hartchart #hartmain {
+        & .slot:nth-child(even) {
+          background: red;
+          color: black;
+          print-color-adjust: exact !important;
+        }
+
+        & .slot:nth-child(odd) {
+          color: red;
+        }
+      }
+
+      #ctrlbar:has(#redmode[data-state="2"])~#hartchart #hartmain {
+        & .slot.randomred {
+          background: red;
+          color: black;
+          print-color-adjust: exact !important;
+        }
+
+        & .slot:not(.randomred) {
+          color: red;
+        }
+      }
+
+      #boxscale,
+      #cheatcode,
+      #cheatcode+label,
+      #showcodex,
+      #showcodex+label {
+        display: none;
+      }
+
+      #codeout {
+        line-height: 1.6em;
+      }
+
+    }
+
+    /* document.querySelector("#controls:has(#redmode[data-state=\"1\"]) ~ #hartchart #hartmain .slot:nth-child(even)") */
+  </style>
+  <!-- https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/ -->
+  <!-- https://dev.to/murtuzaalisurti/how-to-make-a-qr-code-generator-using-vanilla-javascript-3cla -->
+</head>
+
+<body>
+
+
+
+  <div id="ctrlbar" class="z1">
+    <div><a href="index.html"><img id="homeicon" src="img/home.svg" alt="home" /></a></div>
+
+    <div id="ctrlsettings"><input type="checkbox" id="ctrlset" /><label for="ctrlset"><img src="img/icon_ctrlsettings.svg" /></label>
+
+      <div class="ctrlbox">
+        
+
+        <div><input type="checkbox" class="slider" id="showmetro" /><label for="showmetro">Show Metronome</label></div>
+
+        <div><input type="checkbox" class="threestate" id="redmode" /><label for="redmode">Blue/Red filter</label></div>
+
+        <div>
+          <div id="qrplace"></div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <div id="metronome">
+      <div id="tapp">TAP</div><input type="text" id="bpm" value="60" />
+      <input type="checkbox" id="metrocheck"><label for="metrocheck">
+        <svg id="metro_on" xmlns="http://www.w3.org/2000/svg" version="1.0" width="500" height="500" viewBox="0 0 75 75">
+          <path d="M39.389,13.769 L22.235,28.606 L6,28.606 L6,47.699 L21.989,47.699 L39.389,62.75 L39.389,13.769z" style="stroke-width:5;stroke-linejoin:round;" />
+          <path d="M48,27.6a19.5,19.5 0 0 1 0,21.4M55.1,20.5a30,30 0 0 1 0,35.6M61.6,14a38.8,38.8 0 0 1 0,48.6" style="fill:none;stroke-width:5;stroke-linecap:round" />
+        </svg>
+
+        <svg id="metro_off" xmlns="http://www.w3.org/2000/svg" version="1.0" width="500" height="500" viewBox="0 0 75 75" stroke-width="5">
+          <path d="m39,14-17,15H6V48H22l17,15z" stroke-linejoin="round" />
+          <path d="m49,26 20,24m0-24-20,24" fill="none" stroke-linecap="round" />
+        </svg>
+      </label>
+    </div>
+
+    <!-- <div id="controls">
+      <div id="settings">*SETTINGS*</div>
+      <div class="ctrlbox">
+        <div>Seed <input placeholder="Enter a 5 digit number" type="number" id="seed" /></div>
+      </div>
+    </div> -->
+
+
+    <button id="reload">Reload</button>
+
+  </div>
+
+
+
+  <div id="hartchart" class="contents">
+    <div id="boxscale"><input type="range" id="scale" max="1" min="0.3" value="1" step="0.01" /></div>
+    <div id="hartmain" data-mark=""></div>
+
+
+    <div id="codeout"></div>
+    <div id="codehints"><input type="checkbox" class="slider" id="cheatcode" /><label for="cheatcode">Show Hints</label></div>
+
+  </div>
+
+  <script>
+
+
+    let main = document.querySelector("#hartmain");
+    let codeout = document.querySelector("#codeout");
+    let qrplace = document.querySelector("#qrplace");
+    let querypattern = window.location.hash.replace(/^#/, "");
+
+
+    let redmode = document.querySelector("#redmode");
+
+    redmode.oninput = function (e) {
+      threestate(this);
+      // console.log(this.dataset.state);
+      // showchart();
+    };
+
+
+    // querypattern = querypattern.toUpperCase().replace(/[^A-Z]/g, "");
+    querypattern = querypattern.replace(/[^\d]/g, "");
+
+    if (querypattern) {
+      // querypattern = 
+      showchart(querypattern);//.split(""));
+    } else {
+      showchart();
+    }
+
+    document.querySelector("input#scale").oninput = function (e) {
+      // console.log(this.value);
+      document.body.style.setProperty('--scale', this.value);
+    };
+
+
+    function showchart(pattern) {
+      let rngseed = pattern ?? Math.floor(Math.random() * 100000000);
+      let rng = random(rngseed);
+
+      main.replaceChildren(); //.inner Text = "";
+      let lastchar = "";
+      for (let x = 1; x <= 10; x++) {
+        for (let y = 1; y <= 10; y++) {
+          let slot = document.createElement("div");
+          slot.className = "slot";
+          if (minmax(1, 40) % 2 == 1) slot.classList.add("randomred");
+          //slot.id = "slot" + x + "-" + y;
+          slot.dataset.slot = [x, y];
+          slot.dataset.row = x;
+          slot.dataset.col = y;
+          let breakcount;
+          slot.dataset.char = lastchar = nextletter(lastchar);
+          //pattern ? pattern.shift() : 
+          main.append(slot);
+        }
+      }
+
+      let url = window.location.toString();
+      url.replace(/[\?#&].*$/, "");
+      let qrstring = url + "#" + rngseed;
+      // console.log(qrstring);
+      qrplace.replaceChildren(getqr(qrstring, "_partner"));
+      // }
+
+      hartcode();
+
+
+
+
+
+      function hartcode(text) {
+        // let qq = quotes.filter((q) => { return q.length < 50; });
+        // text ??= qq[Math.floor(Math.random() * qq.length)];
+        text ??= getquote();
+        // codeout.innerHTML = "Hart Code:<br/>";
+        codeout.innerText = "";
+        codeout.title = text;
+        codeout.className = "";
+        let count = 0;
+        for (const c of text.toUpperCase().split("")) {
+
+          let found = main.querySelectorAll(`div[data-char="${c}"]`);
+          let lettercode;
+          if (found.length > 0) {
+            lettercode = document.createElement("input");
+            lettercode.type = "text";
+
+            // pick one
+            let coords = found[Math.floor(Math.random() * found.length)];
+
+            lettercode.placeholder = "[" + coords.dataset.slot + "]";
+            lettercode.dataset.row = coords.dataset.row;
+            lettercode.dataset.col = coords.dataset.col;
+
+            lettercode.oninput = function (e) {
+              if (this.value.toUpperCase() == this.dataset.char) {
+                this.value = this.value.toUpperCase();
+                this.classList.add("correct");
+                // console.log(this.nextElementSibling);
+                // this.nextElementSibling.click();
+                let nextbox = document.querySelector("#" + this.id + "~ input:not(.correct)");
+                if (nextbox) {
+                  nextbox.focus();
+                } else {
+                  this.blur();
+                }
+                if (codeout.querySelectorAll("input.lettercode.correct").length == codeout.querySelectorAll("input.lettercode").length) {
+                  console.log("FINISHED", text);
+                  codeout.className = "finished";
+                }
+              } else {
+                this.classList.remove("correct");
+                codeout.classList.remove("finished");
+
+              }
+            };
+
+          } else {
+            lettercode = document.createElement("div");
+
+            // console.log("NOTFOUND", c);
+            lettercode.innerText = c;
+            lettercode.setAttribute("disabled", true);
+          }
+          lettercode.id = "lettercode" + count++;
+          lettercode.dataset.char = c;
+          lettercode.className = "lettercode";
+          codeout.append(lettercode);
+
+
+        }
+
+      }
+
+
+      function nextletter(lastchar) {
+        let alpha = "ABCDEFGHKLMNOPQRSTUVWXYZ".split("");
+        let loopcount = 0;
+        let nextchar;
+        do {
+          // nextchar = alpha[Math.floor(Math.random() * alpha.length)];
+          nextchar = alpha[Math.floor(rng() * alpha.length)];
+          // console.log("checking mark",loopcount,nextmark,centerpoint.dataset.mark);
+          if (++loopcount > 5) break; // prevent infinite loop when only one mark is available
+        } while (nextchar && nextchar == lastchar);
+        return nextchar;
+      }
+
+    }
+
+
+
+    document.querySelector("#reload").onclick = function (e) {
+      showchart();
+      window.location.hash = "";
+    };
+
+
+  </script>
+
+</body>
+
+</html>

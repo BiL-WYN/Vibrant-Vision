@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hart Chart exercise</title>
+  <meta name="darkreader-lock">
+
+  <!-- <script src="xx_borrowed/alljs.php"></script> -->
+  <script src="js/alljs.js"></script>
+  <!-- <link rel="stylesheet" href="xx_borrowed/allcss.php" /> -->
+  <link rel="stylesheet" href="css/allcss.css" />
+  <link rel="stylesheet" href="css/vision.css" />
+  <script src="js/darkmode.js"></script>
+  <script defer src="js/settings.js"></script>
+  <script defer src="js/topmenu.js"></script>
+
+
+  <style>
+    body {
+      --scale: 1;
+      --topgap: 2em;
+      /* clamp(2.5rem, 2.5em, 10vh); */
+      /* --slotsize: calc(var(--boxsize) / 10); */
+      --codegap: 2.5em;
+      --boxsize: min(calc(95vh - var(--topgap) - var(--codegap)), calc(95vw - var(--topgap) - var(--codegap)));
+      --basefont: calc(var(--boxsize) / 13);
+    }
+
+    #hartmain {
+      --numslots: 8;
+      position: relative;
+      height: var(--boxsize);
+      width: var(--boxsize);
+      font-size: var(--basefont);
+      --slotsize: calc(var(--boxsize) / var(--numslots));
+      margin-top: 1em;
+      display: grid;
+      grid-template-columns: repeat(var(--numslots), 1fr);
+      grid-template-rows: repeat(var(--numslots), 1fr);
+      left: 50%;
+      grid-gap: calc(var(--slotsize) / 8);
+      transform-origin: top;
+      transform: translate(-50%) scale(var(--scale));
+
+      .slot {
+        position: relative;
+        text-align: center;
+        /* line-height: var(--basefont); */
+        /* grid layout takes care of size */
+        width: calc(var(--slotsize) * 7 / 8);
+        height: calc(var(--slotsize) * 7 / 8);
+      }
+    }
+
+
+    #qrplace {
+      display: none;
+      position: relative;
+      text-align: center;
+      /* left: 50%;
+      transform: translate(-50%);
+      top: 0.5em; */
+    }
+
+    .qrcode {
+      padding: 10px;
+      background: #fff;
+      position: absolute;
+      left: 50%;
+      transform: translate(-50%);
+      top: 1.5em;
+      z-index: 1000;
+    }
+
+    #qrtoggle:checked~#qrplace {
+      display: block;
+    }
+
+
+    #boxscale {
+      position: relative;
+      top: 1em;
+      left: 50%;
+      transform: translate(-50%);
+      width: 40%;
+
+      & input {
+        width: 100%;
+      }
+    }
+
+    #boxscale::before,
+    #boxscale::after {
+      content: "A";
+      font-size: 100%;
+      display: block;
+      position: absolute;
+      width: 1em;
+      height: 1em;
+      top: 50%;
+      transform: translate(0, -50%);
+    }
+
+    #boxscale::before {
+      left: -1.5em;
+    }
+
+    #boxscale::after {
+      font-size: 150%;
+      right: -1.5em;
+    }
+
+    #hartchart {
+      display: flex;
+      flex-direction: column;
+
+
+      #hartmain {
+        order: 1;
+      }
+
+    }
+
+
+    .shape {
+
+      --arrowscale: 0.7;
+      scale: 0.9;
+
+      &.arrow {
+        scale: var(--arrowscale);
+      }
+
+      &.up {
+        /* transform: scale(var(--arrowscale)) rotate(-90deg); */
+        rotate: -90deg;
+      }
+
+      &.left {
+        rotate: 180deg;
+      }
+
+      &.down {
+        rotate: 90deg;
+      }
+
+      path,
+      circle {
+        fill: var(--fg);
+        /* stroke: var(--fg); */
+        /* stroke-width: 0.1; */
+        stroke-linejoin: round;
+
+      }
+
+    }
+
+    @media print {
+      #hartmain {
+        --boxsize: 6.5in;
+      }
+
+      #boxscale {
+        display: none;
+      }
+
+      #codeout {
+        line-height: 1.6em;
+      }
+
+    }
+
+    #ctrlbar:has(#shapearrow:checked)~#hartchart #hartmain {
+      --numslots: 6;
+    }
+  </style>
+</head>
+
+<body>
+
+
+
+  <div id="ctrlbar">
+    <div><a href="index.html"><img id="homeicon" src="img/home.svg" alt="home" /></a></div>
+
+
+    <div id="ctrlsettings"><input type="checkbox" id="ctrlset" /><label for="ctrlset"><img src="img/icon_ctrlsettings.svg" /></label>
+
+      <div class="ctrlbox">
+
+        <div><input type="checkbox" class="slider" id="shapearrow" /><label for="shapearrow">Shapes/Arrows</label></div>
+
+      </div>
+    </div>
+
+    <button id="reload">Reload</button>
+
+  </div>
+
+
+  <div id="hartchart" class="contents">
+    <div id="hartmain"></div>
+  </div>
+
+  <script>
+
+
+    // arrows in 4 directions (maybe 8?
+    // shapes: square, diamond (square45deg), circle, triangle, star
+    // console.log(shapes);
+
+
+    let main = document.querySelector("#hartmain");
+    let arrow = document.querySelector("#shapearrow");
+    arrow.onchange = showchart;
+
+    showchart();
+
+
+    function showchart() {
+
+      let shapes = arrow.checked ? [["up", "down"], ["left", "right"]] : "star circle diamond square triangle".split(" "); //.map(s => "img/chart/chart_" + s + ".svg");
+
+
+      main.replaceChildren(); //.inner Text = "";
+      let previous = [];
+
+      let shapecount = arrow.checked ? 6 : 8;
+
+
+      for (let x = 1; x <= shapecount; x++) {
+        for (let y = 1; y <= shapecount; y++) {
+          let slot = document.createElement("div");
+          slot.className = "slot";
+
+          if (arrow.checked) {
+            slot.append(shape(randarray(shapes[(x + y) % 2])));
+          } else {
+            previous.push(randarray(shapes, [previous[previous.length - 1], previous[previous.length - shapecount]]));
+            // shp.src =
+            slot.append(shape(previous[previous.length - 1]));
+            //pattern ? pattern.shift() : 
+          }
+          main.append(slot);
+        }
+      }
+
+    }
+
+
+
+    document.querySelector("#reload").onclick = function (e) {
+      showchart();
+      window.location.hash = "";
+    };
+
+
+    function svgpath({ viewBox = "0 0 2.2 2.2", path, cls } = {}) {
+      let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", viewBox);
+      let thepath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      thepath.setAttribute("d", "M0.1 0.1 " + path);
+      svg.appendChild(thepath);
+      svg.classList.add("shape");
+      if (cls) svg.classList.add(...cls.split(" "));
+      return svg;
+    }
+
+    function svgcircle({ cls } = {}) {
+      let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", "0 0 2.2 2.2");
+      let c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c.setAttribute("cx", 1.1);
+      c.setAttribute("cy", 1.1);
+      c.setAttribute("r", 0.9);
+      svg.appendChild(c);
+      svg.classList.add("shape");
+      if (cls) svg.classList.add(...cls.split(" "));
+      return svg;
+      // document.body.append(svg);
+    }
+
+
+    function shape(s) {
+      switch (s) {
+        case "left":
+        case "right":
+        case "up":
+        case "down":
+          return svgpath({ path: "m0 0.85 l1.5 0 l0 -0.3 l0.5 0.45 l-0.5 0.45 l0 -0.3 l-1.5 0 z", cls: "arrow " + s });
+          break;
+        case "circle": return svgcircle({ cls: s });
+          break;
+        case "square":
+          return svgpath({ path: "m0.2 0.2 h1.6 v1.6 h-1.6 z", cls: s });
+          break;
+        case "triangle":
+          return svgpath({ path: "m0 1.8 l1 -1.732 l1 1.732 z", cls: s });
+          break;
+        case "diamond":
+          return svgpath({ path: "m0 1 l1 -1 l1 1 l-1 1 z", cls: s });
+          break;
+
+        case "star": // real
+          return svgpath({
+            path:
+              "m0 0.727 " +
+              "l0.753 -0.016 " +
+              "l0.247	-0.711 " +
+
+              "l0.247 0.711 " +
+              "l0.753 0.016 " +
+
+              "l-0.6 0.454 " +
+              "l0.218 0.721 " +
+
+              "l-0.618 -0.430 " +
+              "l-0.618 0.430 " +
+              "l0.218 -0.721 " +
+              "z ", cls: s
+          });
+          break;
+        case "handstar":
+          return svgpath({
+            path:
+              "m0 0.7 " + //left point
+              "l0.75 0 " + // left in
+              "l0.25 -0.7 " + // top point
+              "l0.25 0.7 " + // down to right in
+              "l0.75 0 " + // right point
+              "l-0.6 0.5 " + // RL in
+              "l0.25 0.7 " + // RL point
+              "l-0.65 -0.45 " + // bottom in
+              "l-0.65 0.45 " + // LL point
+              "l0.25 -0.7 " + // LL in
+              "z", cls: s
+          });
+          break;
+      }
+    }
+
+
+  </script>
+
+</body>
+
+</html>

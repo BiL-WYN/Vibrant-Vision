@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tranaglyphs</title>
+  <meta name="darkreader-lock" />
+
+  <!-- <script src="xx_borrowed/alljs.php"></script> -->
+  <script src="js/alljs.js"></script>
+  <!-- <link rel="stylesheet" href="xx_borrowed/allcss.php" /> -->
+  <link rel="stylesheet" href="css/allcss.css" />
+  <link rel="stylesheet" href="css/vision.css" />
+  <script src="js/darkmode.js"></script>
+  <script defer src="js/settings.js"></script>
+  <script defer src="js/topmenu.js"></script>
+
+  <style>
+    :root {
+      --scale: 1.65;
+      --steps: 0.05;
+      --glyphscale: 1;
+      --basesize: calc(4in * var(--scale));
+      --glyphsize: calc(var(--basesize) * var(--glyphscale));
+    }
+
+
+    [data-theme="light"] {
+
+      #circles #green {
+        mix-blend-mode: darken;
+      }
+    }
+
+    [data-theme="dark"] {
+
+      #circles #green {
+        mix-blend-mode: difference;
+      }
+    }
+
+    input[type=range] {
+      width: 60%;
+      /* margin: 0.5em 0 0 10%; */
+    }
+
+
+    #circles {
+      position: relative;
+      top: 3em;
+      --delta: 0;
+      --units: 1cm;
+
+    }
+
+
+    #circles.fusion {
+
+      /* filter: brightness(0) saturate(0);*/
+      /* margin-top: calc(40vh - 5em - var(--glyphsize)); */
+      top: 0;
+
+      * {
+        mix-blend-mode: normal !important;
+      }
+
+      --tranared: var(--fg);
+      --tranagreen: var(--fg);
+
+      /* #red,
+      #green {
+        left: calc(50% + var(--scale) * 1.2 * var(--units));
+        transform: translate(calc(-50% + var(--scale) * 1.2 * var(--units)));
+      } */
+
+      .marker {
+        border-width: calc(var(--bsize)/1.5);
+      }
+
+      .satellite {
+        display: none;
+      }
+
+    }
+
+
+    .circle,
+    .center,
+    .marker,
+    .points {
+      /* box-sizing: border-box; */
+      width: var(--glyphsize);
+      height: var(--glyphsize);
+      border-radius: var(--glyphsize);
+      --bsize: calc(var(--glyphsize) * 0.06);
+      border: solid var(--bsize);
+      position: absolute;
+      left: 50%;
+      transform: translate(-50%);
+    }
+
+    #red,
+    #green {
+      left: calc(50% + var(--delta) * var(--scale) * var(--units));
+      transform: translate(calc(-50% + var(--delta) * var(--scale) * var(--units)));
+    }
+
+    #green,
+    #green * {
+      --units: -1cm;
+      --tranacolor: var(--tranagreen);
+      border-color: var(--tranacolor);
+    }
+
+    #red,
+    #red * {
+      --tranacolor: var(--tranared);
+      border-color: var(--tranacolor);
+    }
+
+
+
+    .inner {
+      width: calc(var(--glyphsize) * .75);
+      height: calc(var(--glyphsize) * .75);
+      top: 50%;
+      transform: translate(-47%, -50%);
+    }
+
+    #green .inner {
+      transform: translate(-53%, -50%);
+
+    }
+
+
+    .satellite {
+      width: calc(var(--glyphsize) * .065);
+      height: calc(var(--glyphsize) * .065);
+      bottom: -10%;
+    }
+
+
+
+    #green .satellite {
+      top: -10%;
+    }
+
+    .one {
+      left: -7%;
+    }
+
+    .two {
+      left: 107%;
+    }
+
+    .center {
+      width: calc(var(--glyphsize) * .22);
+      height: calc(var(--glyphsize) * .22);
+      border-width: 0;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .center::after,
+    .center::before {
+      content: " ";
+      width: 100%;
+      height: calc(var(--glyphsize) * .035);
+      position: absolute;
+      background: var(--tranacolor);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .center::after {
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    .center::before {
+      transform: translate(-50%, -50%) rotate(-45deg);
+    }
+
+
+    .marker {
+      width: calc(var(--basesize) * .03);
+      height: calc(var(--basesize) * .03);
+      bottom: 22%;
+    }
+
+
+    #green .marker {
+      border-radius: 0.25cm;
+      top: 22%;
+    }
+
+
+    .points {
+      border: none;
+    }
+
+    .points::before,
+    .points::after {
+      content: " ";
+      position: absolute;
+      height: 0;
+      width: 0;
+      --point: calc(var(--basesize) * 0.05);
+      border-top: none;
+      border-left: solid calc(var(--point) /3) transparent;
+      border-right: solid calc(var(--point) /3) transparent;
+      border-bottom: solid var(--point) var(--tranacolor);
+      top: calc(var(--point) * (-1) - var(--bsize));
+      left: 50%;
+      transform: translate(-50%);
+    }
+
+    .points::after {
+      content: " ";
+      border-top: solid var(--point) var(--tranacolor);
+      border-bottom: none;
+      top: auto;
+      bottom: calc(var(--point) * (-1) - var(--bsize));
+    }
+
+
+    #rangeout {
+      text-align: center;
+      height: 1.5em;
+      line-height: 1.5em;
+      margin: 0.5em;
+    }
+
+    #calibrators {
+      margin-top: 2em;
+      text-align: center;
+
+      >b {
+        display: block;
+        font-size: 150%;
+      }
+
+      #calibrate {
+        position: relative;
+        width: var(--basesize);
+        height: 1.5em;
+        line-height: 1.5em;
+        border-left: 2px solid var(--fg);
+        border-right: 2px solid var(--fg);
+        left: 50%;
+        transform: translate(-50%);
+        text-align: center;
+      }
+
+      #calibrate::after {
+        content: attr(data-value) "x ⮕ 4in (10.16cm)";
+        text-align: center;
+      }
+    }
+
+    /* #ctrlbar:has(#fusion:checked) {
+      /* ~#slider {
+        display: none;
+      } * /
+
+      ~#rangeout {
+        display: none;
+      }
+    } */
+
+    #ctrlbar:has(#fusion:checked)~#calibrators {
+      & * {
+        transition: opacity 0.5s;
+      }
+
+      &> :is(div, input) {
+        opacity: 0;
+      }
+
+      &:hover> :is(div, input) {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="ctrlbar">
+    <div><a href="index.html"><img id="homeicon" src="img/home.svg" alt="home" /></a></div>
+
+
+    <div><input type="checkbox" class="slider" id="darkmode" /><label for="darkmode">Dark mode</label></div>
+
+    <div><input type="checkbox" class="slider" id="fusion" /><label for="fusion">Fusion mode</label></div>
+
+
+  </div>
+
+
+  </div>
+
+  <div id="calibrators">
+    <b>Calibrator:</b>
+    <input type="range" id="calibrator" min="0.5" max="3" step="0.05" value="1.65" />
+    <div id="calibrate" data-value="1.65"></div>
+
+    <br />
+    <input type="range" id="slider" min="-24" max="24" />
+    <div id="rangeout">0</div>
+  </div>
+
+
+
+  <div id="circles" class="contents">
+    <div id="red" class="circle">
+      <div class="inner circle"></div>
+      <div class="center"></div>
+      <div class="satellite circle one"></div>
+      <div class="satellite circle two"></div>
+      <div class="marker"></div>
+      <div class="points"></div>
+    </div>
+    <div id="green" class="circle">
+      <div class="inner circle"></div>
+      <div class="center"></div>
+      <div class="satellite circle one"></div>
+      <div class="satellite circle two"></div>
+      <div class="marker"></div>
+      <div class="points"></div>
+    </div>
+  </div>
+
+
+  <script>
+
+    // document.querySelector("#calibrate");
+
+    let defaultlight = true;
+
+    let slider = document.querySelector("#slider");
+    let docvars = getComputedStyle(document.documentElement);
+
+    let basestep = parseFloat(docvars.getPropertyValue("--steps"));
+
+    let fixpoint = basestep.toString().replace(/^\d*\.?/, "").length;
+    let circles = document.querySelector("#circles");
+
+    let fusion = document.querySelector("#fusion");
+    let calibrator = document.querySelector("#calibrator");
+    let rangeout = document.querySelector("#rangeout");
+
+
+
+    fusion.onchange = fusiontoggle;
+
+
+    function fusiontoggle() {
+      if (fusion.checked) {
+
+        // set thing
+        slider.value = 11;
+        movecircles();
+
+        document.documentElement.style.setProperty("--glyphscale", "0.33");
+        // document.documentElement.style.setProperty("--saturate", "0");
+        circles.classList.add("fusion");
+        // document.documentElement.setAttribute("data-theme", "dark");
+      } else {
+        document.documentElement.style.setProperty("--glyphscale", "1");
+        // document.documentElement.style.setProperty("--saturate", "1");
+        slider.value=0;
+        movecircles();
+        circles.classList.remove("fusion");
+        // document.documentElement.setAttribute("data-theme", "light");
+      }
+    }
+
+
+    window.addEventListener("keydown", function (e) {
+      if (e.key === "f") {
+        e.preventDefault();
+        fusion.checked = !fusion.checked;
+        fusiontoggle();
+      }
+
+    });
+
+
+
+    slider.setAttribute("step", basestep);
+    slider.oninput = movecircles;
+
+
+
+    calibrator.oninput = function (e) {
+      // parseFloat(docvars.getPropertyValue("--scale"));
+      document.documentElement.style.setProperty("--scale", this.value);
+      // document.querySelector("#calibrate").innerText = this.value;
+      document.querySelector("#calibrate").dataset.value = parseFloat(this.value).toFixed(2);
+    };
+
+    slider.ontouchstart = calibrator.ontouchstart = function (e) {
+      // alert("tocuh start");
+      e.stopPropagation();
+    };
+
+
+
+
+
+    function movecircles(key = false) {
+      // console.log(parseFloat(slider.value));
+      circles.style.setProperty("--delta", parseFloat(slider.value) / 24 * 2.6);
+      if (key) key.preventDefault();
+      let slidevalue = parseFloat(slider.value).toFixed(fixpoint);
+      if (slidevalue < 0) {
+        rangeout.innerText = "C" + Math.abs(slidevalue);
+      } else if (slidevalue > 0) {
+        rangeout.innerText = "D" + Math.abs(slidevalue);
+      } else {
+        rangeout.innerText = "0";
+      }
+    }
+
+    window.addEventListener("keydown", function (e) {
+      switch (e.keyCode) {
+        case 37: // left
+        case 40: //down
+          slider.value -= basestep;
+          movecircles(e); break;
+        case 39: //right
+        case 38: //up
+          slider.value -= -basestep;
+          movecircles(e); break;
+        case 33: //pgup
+          slider.value = Math.round(slider.value) + 1;
+          movecircles(e); break;
+        case 34: //pgdn
+          slider.value = Math.round(slider.value) - 1;
+          movecircles(e); break;
+        case 48: // Zero
+          slider.value = 0;
+          movecircles(e); break;
+
+        //slider.value -= delta; movecircles(e); break;
+      }
+      console.log(e.key, e.keyCode, slider.value);
+
+    });
+
+    document.addEventListener("wheel", function (e) {
+      if (e.deltaY < 0) {
+        //up
+        slider.value -= -(basestep * 2);
+        movecircles(e);
+      } else if (e.deltaY > 0) {
+        //down
+        slider.value -= basestep * 2;
+        movecircles(e);
+      }
+    }, { passive: false });
+
+
+  </script>
+
+</body>
+
+</html>

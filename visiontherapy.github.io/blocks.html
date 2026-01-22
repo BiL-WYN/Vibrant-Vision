@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pattern Blocks</title>
+  <meta name="darkreader-lock" />
+
+  <!-- <script src="xx_borrowed/alljs.php"></script> -->
+  <script src="js/alljs.js"></script>
+  <!-- <link rel="stylesheet" href="xx_borrowed/allcss.php" /> -->
+  <link rel="stylesheet" href="css/allcss.css" />
+  <link rel="stylesheet" href="css/vision.css" />
+  <script src="js/darkmode.js"></script>
+  <script defer src="js/settings.js"></script>
+  <script defer src="js/topmenu.js"></script>
+
+  <script src="js/customblock_shadow.js?v=2"></script>
+
+  <style>
+    bl-ock {
+      --blocksize: 2.5em;
+    }
+
+
+    #tileholder,
+    #playfield {
+      padding: 1em;
+      user-select: none;
+      left: 50%;
+      position: relative;
+      transform: translate(-50%);
+    }
+
+    #playfield {
+      --gridsize: 8;
+
+      --playsize: min(calc(var(--gridsize)* 4em), min(92vw, 92vh));
+
+      --blocksize: calc(var(--playsize) / var(--gridsize));
+
+      width: var(--playsize);
+      height: var(--playsize);
+      line-height: 0;
+
+      .playslot {
+        width: var(--blocksize);
+        height: var(--blocksize);
+        background: #777;
+        display: inline-block;
+
+        bl-ock {
+          /* needs to be re-declared
+          due to shadow DOM */
+          --blocksize: calc(var(--playsize) / var(--gridsize));
+          margin: 0;
+          position: absolute;
+        }
+      }
+
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="ctrlbar">
+    <div><a href="index.html"><img id="homeicon" src="img/home.svg" alt="home" /></a></div>
+
+
+    <div id="ctrlsettings"><input type="checkbox" id="ctrlset" /><label for="ctrlset"><img src="img/icon_ctrlsettings.svg" /></label>
+
+      <div class="ctrlbox">
+        <div><input type="checkbox" class="slider" id="darkmode" /><label for="darkmode">Dark mode</label></div>
+
+
+        <select id="alltiles">
+          <option value="all">All tiles (64)</option>
+          <option value="36">Random 36</option>
+          <option value="rogue">More! (70)</option>
+
+        </select>
+      </div>
+    </div>
+
+
+
+    <button id="reload">Reset</button>
+  </div>
+
+
+  <div id="tileholder"></div>
+  <div id="playfield"></div>
+
+
+
+  <script>
+
+    // MAXIMIZED ALL BLOCKS
+    let allblocks = "1 12 123 1234 12345 123456 12346 1235 12356 1236 124 1245 12456 1246 13 134 1345 13456 1345678 134578 1346 135 1356 135678 13578 136 14 145 1456 146 15 156 2 23 234 2345 23456 234567 2345678 23457 234578 2346 234678 235 2356 23567 235678 2357 23578 236 23678 24 245 2456 24567 245678 2457 24578 246 2467 24678 25 256 26";
+
+    // not included, according to https://www.jaapsch.net/puzzles/izzi.htm
+    // 1357 2468 2367 1256 12345678 0
+
+    // let defaultblocks = "1368, 13457, 26, 23, 34578, 138, 12368, 367, 1, 1358, 23467, 13458, 23578, 2568, 123456, 124568, 12578, 245678, 12568, 12, 234567, 1257, 246, 13, 234, 1236, 1267, 467, 1234, 1567, 8, 27, 123, 134, 12348, 157";
+    let defaultblocks = "1 12 123 1234 123456 12348 12356 1236 12368 124568 12568 1257 12578 1267 13 134 13457 13458 1358 1368 138 145 1567 157 2 23 234 234567 23467 23578 245 245678 246 2568 26 27"; // minified default blocks
+
+
+    let blocks = defaultblocks.split(" ");
+
+    let alltiles = document.querySelector("#alltiles");
+    let chooservalue = alltiles.value;
+    document.querySelector("#alltiles").onchange = function (e) {
+      if (document.querySelector("#playfield").querySelector("bl-ock")) {
+        if (!confirm("Tiles are in play. Are you sure you want to restart?")) {
+          this.value = chooservalue;
+          return false;
+        }
+      }
+      chooservalue = this.value;
+
+      blocks = choosetiles(this.value);
+
+      if (showchart() == "NOGO") {
+        this.checked = !this.checked;
+        console.log(this.checked);
+        blocks = (this.checked ? allblocks : defaultblocks).split(" ");
+      }
+    };
+
+
+    function choosetiles(tag) {
+      switch (tag) {
+        case "default":
+          return defaultblocks.split(" ");
+        case "all":
+          return allblocks.split(" ");
+        case "rogue":
+          return (allblocks + "1357 2468 2367 1256 12345678 ").split(" "); // the final space serves as delimiter for the null value, denoting a blank tile
+        case "36":
+          return ashuffle(allblocks.split(" ")).slice(0, 36);
+      }
+    }
+
+
+    let tileholder = document.querySelector("#tileholder");
+    let playfield = document.querySelector("#playfield");
+
+    showchart();
+    let sourcetile, clone;
+    document.addEventListener("touchstart", function (e) {
+
+      sourcetile = e.target;
+      if (e.touches.length == 1 && sourcetile.tagName == "BL-OCK") {
+        e.preventDefault();
+        if (clone) return;
+        let movefrom = sourcetile.parentElement;
+        clone = e.target.cloneNode();
+        document.body.append(clone);
+        clone.style.position = "fixed";
+        clone.style.transition = "none";
+        let firsttouch = e.touches[0];
+        sourcetile.addEventListener("touchmove", function (e) {
+          // e.preventDefault();
+          // console.log(e.touches[0].clientX,e.touches[0].clientY);
+          clone.style.left = (e.touches[0].clientX - clone.clientWidth) + "px";
+          clone.style.top = (e.touches[0].clientY - clone.clientHeight) + "px";
+        }, { passive: false });
+
+        sourcetile.ontouchend = function (e) {
+
+          let firstx = firsttouch.clientX;
+          let firsty = firsttouch.clientY;
+          let endx = e.changedTouches[0].clientX;
+          let endy = e.changedTouches[0].clientY;
+          // console.log(firsttouch, e.changedTouches[0], firsttouch == e.changedTouches[0]);
+          // console.log(Math.trunc(firstx / 10), Math.trunc(endx / 10));
+          // console.log(firsty, endy);
+          if (Math.trunc(firstx / 10) == Math.trunc(endx / 10)
+            && Math.trunc(firsty / 10) == Math.trunc(endy / 10)) {
+            sourcetile.click();
+          } else {
+            for (const el of document.elementsFromPoint(e.changedTouches[0].clientX - clone.clientWidth / 2, e.changedTouches[0].clientY - clone.clientHeight / 2)) {
+              if (el.classList.contains("playslot")) {
+
+                let existingtile = el.querySelector("bl-ock");
+                if (existingtile && existingtile != sourcetile) {
+                  // swap places
+                  el.append(sourcetile);
+                  tileholder.append(existingtile);
+                } else {
+                  // insert it
+                  el.append(sourcetile);
+                }
+                sourcetile.checker();
+                if (movefrom) sourcetile.checker(movefrom.dataset.x, movefrom.dataset.y);
+
+                break;
+              }
+            }
+          }
+          clone.remove();
+          clone = null;
+        };
+      } else if (clone) {
+        clone.remove();
+        clone = null;
+      }
+    }, { passive: false });
+
+
+
+    function showchart() {
+
+      blocks = ashuffle(choosetiles(alltiles.value));
+
+      tileholder.replaceChildren();
+      playfield.replaceChildren(); //.inner Text = "";inner HTML = "";
+
+      for (let b of blocks) {
+        let tile = document.createElement("bl-ock");
+        tile.value = b;
+        tileholder.append(tile);
+
+        // randomize rotation on first load
+        // MUST be done AFTER appending to the DOM, since dataset is only available after it is added
+        tile.dataset.state = Math.floor(Math.random() * 4);
+
+
+
+        tile.setAttribute("draggable", true);
+        tile.addEventListener("dragstart", function (e) {
+          // console.log(e);
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setDragImage(this, e.target.clientHeight / 2, e.target.clientWidth / 2);
+          // console.log(e.target);
+          e.dataTransfer.setData("blockid", e.target.id);
+          // e.preventDefault();
+          // console.log(e.target.parentElement.dataset);
+          // e.target.checker(e.target.parentElement.dataset.x,e.target.parentElement.dataset.y);
+          e.dataTransfer.setData("movefrom", [e.target.parentElement.dataset.x, e.target.parentElement.dataset.y]);
+
+        });
+
+      }
+
+      let gridsize = getComputedStyle(playfield).getPropertyValue("--gridsize");
+      for (let x = 0; x < gridsize; x++) {
+        for (let y = 0; y < gridsize; y++) {
+          let box = document.createElement("div");
+          box.className = "playslot";
+          box.dataset.x = x;
+          box.dataset.y = y;
+          playfield.append(box);
+        }
+      }
+
+
+      playfield.ondragover = playfield.ondragenter = function (e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        // console.log("dragging",e.target);
+      };
+
+      playfield.ondrop = function (e) {
+        e.preventDefault();
+        let thisblock = document.getElementById(e.dataTransfer.getData("blockid"));
+        // console.log("target,parent,thisblock", e.target, e.target.parentElement, thisblock);
+        // console.log("block inside", e.target);
+        if (thisblock
+          && e.target.tagName != "BL-OCK"
+          && e.target != thisblock
+        ) {
+          e.target.append(thisblock);
+          //find neighbors:
+
+          thisblock.checker();
+          let movefrom = e.dataTransfer.getData("movefrom").split(",");
+          if (movefrom[0]) thisblock.checker(movefrom[0], movefrom[1]);
+          // console.log(movefrom);
+
+        } else if (e.target.tagName == "BL-OCK"
+          && e.target != thisblock
+        ) {
+          let targetbox = e.target.parentElement;
+          targetbox.append(thisblock);
+          tileholder.append(e.target);
+
+          // console.log("swap it", thisblock, e.target);
+        }
+
+      };
+    }
+
+
+    document.querySelector("#reload").onclick = function (e) {
+      if (document.querySelector("#playfield").querySelector("bl-ock")) {
+        if (confirm("Tiles are in play. Are you sure you want to restart?")) {
+          showchart();
+        }
+      } else {
+        showchart();
+      }
+    };
+
+    window.addEventListener("beforeunload", (e) => {
+      if (document.querySelector("#playfield").querySelector("bl-ock")) {
+        e.preventDefault();
+      }
+    });
+
+  </script>
+</body>
+
+</html>
