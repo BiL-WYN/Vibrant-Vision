@@ -115,6 +115,7 @@ const Exercise: React.FC = () => {
                     result.faceBlendshapes as FaceBlendshapeResult[]
                 );
             }
+            
         }
 
         if (webcamRunningRef.current) {

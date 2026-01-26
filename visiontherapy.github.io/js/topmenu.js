@@ -49,12 +49,7 @@ let data = [ //first two items comprise the menu opener (open / close)
     "src": "img/icon_shapechart.svg",
     "alt": "Shape Chart",
     "link": "shapechart.html"
-  }, {
-    "id": "id5",
-    "src": "img/icon_lettertracking.svg",
-    "alt": "Letter Tracking",
-    "link": "lettertracking.html"
-  }, {
+  },  {
     "id": "id7",
     "src": "img/icon_lines.svg",
     "alt": "Line Counting",
@@ -65,20 +60,10 @@ let data = [ //first two items comprise the menu opener (open / close)
     "alt": "Spot the Match",
     "link": "spotmatch.html"
   }, {
-    "id": "id10",
-    "src": "img/icon_slaptap.svg",
-    "alt": "Slap Tap",
-    "link": "slaptap.html"
-  }, {
     "id": "id11",
     "src": "img/icon_fistbump.svg",
     "alt": "Closed/Open/Flat",
     "link": "fistbump.html"
-  }, {
-    "id": "id12",
-    "src": "img/icon_colortouch.svg",
-    "alt": "Color Touch",
-    "link": "colortouch.html"
   }, {
     "id": "id14",
     "src": "img/icon_lettersearch.svg",
