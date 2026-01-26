@@ -22,6 +22,7 @@ const navItems: NavItem[] = [
     path: "/search",
     icon: FaEye,
   },
+
   {
     name: "BlinkCamp",
     path: "/BlinkCamp",
@@ -32,12 +33,18 @@ const navItems: NavItem[] = [
     path: "/howto",
     icon: FaQuestionCircle,
   },
+
   {
     name: "About Us",
     path: "/aboutUs",
     icon: FaInfoCircle,
   },
 
+  {
+    name: "Exercise",
+    path: "/exercise",
+    icon: FaInfoCircle,
+  },
 
 ];
 

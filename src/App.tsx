@@ -4,6 +4,7 @@ import HowTo from './pages/HowTo';
 import AboutUs from './pages/AboutUs';
 import Search from './pages/Search';
 import BlinkCamp from './pages/BlinkCamp';
+import Exercise from './pages/Exercise';
 
 
 
@@ -21,6 +22,7 @@ function App() {
         <Route path="/aboutUs" element={<AboutUs />} />
         <Route path="/search" element={<Search />} />
         <Route path="/blinkCamp" element={<BlinkCamp />} />
+        <Route path="/exercise" element={<Exercise />} />
       </Routes>
     </BrowserRouter>
   )
